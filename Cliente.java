@@ -32,8 +32,10 @@ private BufferedWriter bfw;
 private JTextField txtIP;
 private JTextField txtPorta;
 private JTextField txtNome;
+private String SAIR;
 
-public Cliente() throws IOException{                  
+public Cliente() throws IOException{   
+    SAIR = "__Sair";               
     JLabel lblMessage = new JLabel("Verificar!");
     txtIP = new JTextField("localhost");
     txtPorta = new JTextField("12345");
@@ -41,7 +43,7 @@ public Cliente() throws IOException{
     Object[] texts = {lblMessage, txtIP, txtPorta, txtNome };  
     JOptionPane.showMessageDialog(null, texts);              
      pnlContent = new JPanel();
-     texto              = new JTextArea(10,20);
+     texto              = new JTextArea(12,22);
      texto.setEditable(false);
      texto.setBackground(new Color(240,240,240));
      txtMsg                       = new JTextField(20);
@@ -70,9 +72,10 @@ public Cliente() throws IOException{
      setContentPane(pnlContent);
      setLocationRelativeTo(null);
      setResizable(false);
-     setSize(250,300);
+     setSize(300,350);
      setVisible(true);
      setDefaultCloseOperation(EXIT_ON_CLOSE);
+     
 }
 
 /***
@@ -96,8 +99,8 @@ public Cliente() throws IOException{
   */
   public void enviarMensagem(String msg) throws IOException{
                            
-    if(msg.equals("Sair")){
-      bfw.write("Sair\r");
+    if(msg.equals(SAIR)){
+      bfw.write(SAIR+"\r");
     //   bfw.close();
     // ouw.close();
     // ou.close();
@@ -122,7 +125,7 @@ public void escutar() throws IOException{
     BufferedReader bfr = new BufferedReader(inr);
     String msg = "";
                             
-     while(!"Sair".equalsIgnoreCase(msg))
+     while(!SAIR.equalsIgnoreCase(msg))
                                        
         if(bfr.ready()){
           msg = bfr.readLine();
@@ -145,7 +148,7 @@ public void escutar() throws IOException{
   */
   public void sair() throws IOException{
                           
-    enviarMensagem("Sair");
+    enviarMensagem(SAIR);
     //bfw.close();
     //ouw.close();
     //ou.close();
