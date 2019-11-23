@@ -17,7 +17,10 @@ import java.text.SimpleDateFormat;
 
 public class Servidor extends Thread {
 
-private static ArrayList<BufferedWriter>clientes;     
+private static ArrayList<BufferedWriter>clientes;  
+private static ArrayList<Boolean> salas; 
+private String Sala1 = "[Sala 1]";
+private String Sala2 = "[Sala 2]"; 
 //lista de ultimas mensagens
 private static ArrayList<String> last_msgs;           
 private static int num_msg_buffer = 5;
@@ -62,7 +65,7 @@ public void run(){
       String msg_send = getCurrentTime()+"... "+msg+" entrou no chat!";
       sendToOneServer(bfw,returnLastMensagens());
       
-      sendToAllServer(null, getCurrentTime()+"... "+msg+" entrou no chat!");
+      sendToAllServer(bfw, getCurrentTime()+"... "+msg+" entrou no chat!");
       //checkLastMensagens(msg_send);
 
       //System.out.println(clientes);     
@@ -73,7 +76,7 @@ public void run(){
          System.out.println(msg);                                              
          }  
          msg_send = getCurrentTime()+"... "+nome+" saiu do chat!";
-         sendToAllServer(null, msg_send);
+         sendToAllServer(bfw, msg_send);
          //checkLastMensagens(msg_send);
          clientes.remove(bfw);
                                       
@@ -113,13 +116,22 @@ public void sendToAll(BufferedWriter bwSaida, String msg) throws  IOException
 {
   if(SAIR.equalsIgnoreCase(msg)) return;
   BufferedWriter bwS;
-    
+  boolean sala = salas.get(clientes.indexOf(bwSaida));
+  String comp;
+  if(sala){
+    comp = Sala1;
+  }else{
+    comp = Sala2;
+  }
   String msg_ = "("+getCurrentTime()+") "+nome + "\n   -> " + msg+"\r\n";
   for(BufferedWriter bw : clientes){
    bwS = (BufferedWriter)bw;
    //if(!(SAIR.equalsIgnoreCase(msg)&& (bwSaida == bwS))){
-    bw.write(msg_);
-    bw.flush(); 
+     if(salas.get(clientes.indexOf(bwS))==sala){
+      bw.write(comp+" "+msg_);
+      bw.flush(); 
+     }
+    
    //}
    
 
@@ -132,10 +144,23 @@ public void sendToAll(BufferedWriter bwSaida, String msg) throws  IOException
 
 public void sendToAllServer(BufferedWriter bwSaida, String msg) throws  IOException 
 {
+  BufferedWriter bwS;
 
+  boolean sala = salas.get(clientes.indexOf(bwSaida));
+  String comp;
+  if(sala){
+    comp = Sala1;
+  }else{
+    comp = Sala2;
+  }
     for(BufferedWriter bw : clientes){
-        bw.write(msg+"\r\n");
+      bwS = (BufferedWriter)bw;
+
+      if(salas.get(clientes.indexOf(bwS))==sala){
+        bw.write(comp+" "+msg+"\r\n");
         bw.flush(); 
+       }
+        
       }
 
       checkLastMensagens(msg+"\n");
@@ -153,7 +178,7 @@ public void sendToOneServer(BufferedWriter bwSaida, String msg) throws  IOExcept
 //retornar data
 public String getCurrentTime(){
   Calendar calendar = Calendar.getInstance(); // gets current instance of the calendar  SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-  SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+  SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
   System.out.println(formatter.format(calendar.getTime()));
   return ""+formatter.format(calendar.getTime());
 }
@@ -172,17 +197,20 @@ public String getCurrentTime(){
       JOptionPane.showMessageDialog(null, texts);
       server = new ServerSocket(Integer.parseInt(txtPorta.getText()));
       clientes = new ArrayList<BufferedWriter>();
+      salas = new ArrayList<Boolean>();
       last_msgs = new ArrayList<String>();
 
       JOptionPane.showMessageDialog(null,"Servidor ativo na porta: "+         
       txtPorta.getText());
-      
+      boolean salaChoose = true;
        while(true){
          System.out.println("Aguardando conexão...");
          Socket con = server.accept();
          System.out.println("Cliente conectado...");
          Thread t = new Servidor(con);
-          t.start();   
+         t.start();   
+         salas.add(salaChoose);
+         salaChoose = !salaChoose;
       }
                                 
     }catch (Exception e) {
